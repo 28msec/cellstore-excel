@@ -1,0 +1,30 @@
+{
+  "name": "cellstore-excel",
+  "version": "0.0.1",
+  "description": "An Excel Add-in with User Defined Functions to access the Cell Store",
+  "main": "gulpfile.js",
+  "scripts": {
+    "test": "gulp"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/28msec/cellstore-excel.git"
+  },
+  "keywords": [
+    "jsoniq",
+    "cellstore",
+    "excel"
+  ],
+  "author": "28msec",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/28msec/cellstore-excel/issues"
+  },
+  "homepage": "https://github.com/28msec/cellstore-excel#readme",
+  "devDependencies": {
+    "gulp": "^3.9.0",
+    "gulp-load-plugins": "^1.0.0",
+    "gulp-run-sequence": "^0.3.2",
+    "gulp-shell": "^0.5.1"
+  }
+}

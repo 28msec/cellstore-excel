@@ -1,0 +1,6 @@
+<DnaLibrary Language="CS" RuntimeVersion="v4.0" ExplicitExports="true">
+  <ExternalLibrary Path="CellStore.Excel.dll" Pack="true" ExplicitExports="true" />
+  <ExternalLibrary Path="CellStore.dll" Pack="true" ExplicitExports="true" />
+  <ExternalLibrary Path="Newtonsoft.Json.dll" Pack="true" ExplicitExports="true" />
+  <ExternalLibrary Path="RestSharp.dll" Pack="true" ExplicitExports="true" />
+</DnaLibrary>
