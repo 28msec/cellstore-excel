@@ -98,9 +98,7 @@ namespace CellStore.Excel.Api
           )
         {
             try
-            {                
-                Utils.log(Utils.logPath);
-
+            {
                 string basePath_casted = Utils.castParamString(basePath, "basePath", false, "http://secxbrl.28.io/v1/_queries/public");
                 CellStore.Api.DataApi api = ApiClients.getDataApiClient(basePath_casted);
                 
