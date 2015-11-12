@@ -53,11 +53,11 @@ gulp.task('install-dependencies', ['clean'], $.shell.task([
     'cp build/RestSharp.' + config.RestSharp + '/lib/net45/RestSharp.dll build/bin/RestSharp.dll'
 ]));
 
-gulp.task('build', ['install-dependencies'], $.shell.task([
+gulp.task('compile', ['install-dependencies'], $.shell.task([
     pathFix(compileCmd + ' -r:build/bin/ExcelDna.Integration.dll,build/bin/Newtonsoft.Json.dll,build/bin/RestSharp.dll,build/bin/CellStore.dll -target:library -out:build/bin/CellStore.Excel.dll -recurse:src/*.cs -platform:anycpu')
 ]));
 
-gulp.task('pack', ['build'], $.shell.task([
+gulp.task('pack', ['compile'], $.shell.task([
     'cd build && cd bin && ' + packCmd + ' CellStore.Excel.dna /Y',
     'cp build/bin/CellStore.Excel-packed.xll build/release/CellStore.Excel.xll'
 ]));
@@ -66,15 +66,23 @@ gulp.task('artifacts', $.shell.task([
     artifactsDir ? 'cd build && cp -R * ' + artifactsDir : 'echo "CIRCLE_ARTIFACTS not set"'
 ]));
 
-gulp.task('release', function(done){
+gulp.task('publish', function(){
+    gulp.src('./build/release/CellStore.Excel.xll')
+        .pipe($.githubRelease({
+            repo: 'cellstore-excel',
+            owner: '28msec',
+            manifest: require('./package.json')
+        }));
+});
+
+gulp.task('build', function(done){
     $.runSequence('pack', 'artifacts', function(){
         if(isOnTravisAndMaster) {
-            //$.runSequence('publish', done);
-            done();
+            $.runSequence('publish', done);
         } else {
             done();
         }
     });
 });
 
-gulp.task('default', ['release']);
+gulp.task('default', ['build']);

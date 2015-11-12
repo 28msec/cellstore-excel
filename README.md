@@ -19,7 +19,7 @@ Open src/CellStore.Excel/CellStore.Excel.sln to develop with Visual Studio 2015.
 
 Close Excel before installing. Then:
 
-```bash
-$ copy "build\bin\CellStore.Excel.xll" "%APPDATA%\Microsoft\AddIns\CellStore.Excel.xll" /y
-$ start /d "%APPDATA%\Microsoft\AddIns" CellStore.Excel.xll
+```bat
+C:\> copy "build\release\CellStore.Excel.xll" "%APPDATA%\Microsoft\AddIns\CellStore.Excel.xll" /y
+C:\> start /d "%APPDATA%\Microsoft\AddIns" CellStore.Excel.xll
 ```
