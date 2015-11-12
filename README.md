@@ -4,6 +4,7 @@
 An Excel Add-in with User Defined Functions to access the Cell Store.
 
 ## Development
+
 Prerequisite: [NPM](Prerequisites: NPM)
 
 ```bash
@@ -13,3 +14,12 @@ $ gulp install-dependencies
 ```
 
 Open src/CellStore.Excel/CellStore.Excel.sln to develop with Visual Studio 2015.
+
+## Install
+
+Close Excel before installing. Then:
+
+```bash
+$ copy "build\bin\CellStore.Excel.xll" "%APPDATA%\Microsoft\AddIns\CellStore.Excel.xll" /y
+$ start /d "%APPDATA%\Microsoft\AddIns" CellStore.Excel.xll
+```
