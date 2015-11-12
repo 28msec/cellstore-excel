@@ -23,3 +23,9 @@ Close Excel before installing. Then:
 C:\> copy "build\release\CellStore.Excel.xll" "%APPDATA%\Microsoft\AddIns\CellStore.Excel.xll" /y
 C:\> start /d "%APPDATA%\Microsoft\AddIns" CellStore.Excel.xll
 ```
+
+Or from the git shell:
+
+```bash
+$ install.sh
+```
