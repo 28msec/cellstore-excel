@@ -54,7 +54,7 @@ gulp.task('install-dependencies', ['clean'], $.shell.task([
 ]));
 
 gulp.task('compile', ['install-dependencies'], $.shell.task([
-    pathFix(compileCmd + ' -r:build/bin/ExcelDna.Integration.dll,build/bin/Newtonsoft.Json.dll,build/bin/RestSharp.dll,build/bin/CellStore.dll -target:library -out:build/bin/CellStore.Excel.dll -recurse:src/*.cs -platform:anycpu')
+    pathFix(compileCmd + ' -r:build/bin/ExcelDna.Integration.dll,build/bin/Newtonsoft.Json.dll,build/bin/RestSharp.dll,build/bin/CellStore.dll,System.Windows.Forms.dll -target:library -out:build/bin/CellStore.Excel.dll -recurse:src/*.cs -platform:anycpu')
 ]));
 
 gulp.task('pack', ['compile'], $.shell.task([
