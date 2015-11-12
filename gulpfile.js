@@ -13,47 +13,57 @@ var config = {
     NewtonsoftVersion: '7.0.1',
     RestSharp: '105.1.0'
 };
-var nugetCmd = /^win/.test(process.platform) ? 'nuget' : 'mono nuget.exe';
-var compileCmd = /^win/.test(process.platform) ? 'csc' : 'mcs';
-var packCmd = /^win/.test(process.platform) ? 'ExcelDnaPack' : 'mono ExcelDnaPack.exe';
+var isWindows = /^win/.test(process.platform);
+var nugetCmd = isWindows ? 'nuget' : 'mono nuget.exe';
+var compileCmd = isWindows ? 'csc' : 'mcs -sdk:4.5';
+var packCmd = isWindows ? 'ExcelDnaPack' : 'mono ExcelDnaPack.exe';
 
 var downloadCmd = function(url, output){
-    if(/^win/.test(process.platform)){
+    if(isWindows){
         return 'curl -o "' + output + '" ' + url;
     } else {
         return 'wget -O "' + output + '" ' + url;
     }
 };
 
+var pathFix = function(str){
+    if(isWindows){
+        return str.replace(new RegExp('/', 'g'), '\\');
+    } else {
+        return str;
+    }
+};
+
 gulp.task('clean', $.shell.task([
     'rm -rf build',
     'mkdir build',
-    'cd build && mkdir bin'
+    'cd build && mkdir bin && mkdir release'
 ]));
 
 gulp.task('install-dependencies', ['clean'], $.shell.task([
-    /^win/.test(process.platform) ? 'ls' : 'cd build && wget https://nuget.org/nuget.exe',
+    isWindows ? ':' : 'cd build && wget https://nuget.org/nuget.exe',
     'cd build && ' + nugetCmd + ' install ExcelDna.AddIn -Version ' + config.ExcelDnaVersion,
-    'cp build/ExcelDna.AddIn.' + config.ExcelDnaVersion + '/tools/ExcelDnaPack.exe build/ExcelDnaPack.exe',
+    'cp build/ExcelDna.AddIn.' + config.ExcelDnaVersion + '/tools/ExcelDnaPack.exe build/bin/ExcelDnaPack.exe',
     'cp build/ExcelDna.AddIn.' + config.ExcelDnaVersion + '/tools/ExcelDna.Integration.dll build/bin/ExcelDna.Integration.dll',
-    'cp build/ExcelDna.AddIn.' + config.ExcelDnaVersion + '/tools/ExcelDna64.xll build/bin/CellStore64.Excel.xll',
+    'cp build/ExcelDna.AddIn.' + config.ExcelDnaVersion + '/tools/ExcelDna64.xll build/bin/CellStore.Excel.xll',
     'cd build && ' + nugetCmd + ' install CellStore.NET -Version ' + config.CellStoreVersion,
-    'cp lib/CellStore64.Excel.dna build/bin/CellStore64.Excel.dna',
+    'cp lib/CellStore64.Excel.dna build/bin/CellStore.Excel.dna',
     'cp build/CellStore.NET.' + config.CellStoreVersion + '/lib/CellStore.dll build/bin/CellStore.dll',
     'cp build/Newtonsoft.Json.' + config.NewtonsoftVersion + '/lib/net45/Newtonsoft.Json.dll build/bin/Newtonsoft.Json.dll',
     'cp build/RestSharp.' + config.RestSharp + '/lib/net45/RestSharp.dll build/bin/RestSharp.dll'
 ]));
 
 gulp.task('build', ['install-dependencies'], $.shell.task([
-    compileCmd + ' -sdk:4.5 -r:build/bin/ExcelDna.Integration.dll,build/bin/Newtonsoft.Json.dll,build/bin/RestSharp.dll,build/bin/CellStore.dll -target:library -out:build/bin/CellStore64.Excel.dll -recurse:src/*.cs -platform:anycpu'
+    pathFix(compileCmd + ' -r:build/bin/ExcelDna.Integration.dll,build/bin/Newtonsoft.Json.dll,build/bin/RestSharp.dll,build/bin/CellStore.dll -target:library -out:build/bin/CellStore.Excel.dll -recurse:src/*.cs -platform:anycpu')
 ]));
 
 gulp.task('pack', ['build'], $.shell.task([
-    'cd build && ' + packCmd + ' bin/CellStore64.Excel.dna /Y'
+    'cd build && cd bin && ' + packCmd + ' CellStore.Excel.dna /Y',
+    'cp build/bin/CellStore.Excel-packed.xll build/release/CellStore.Excel.xll'
 ]));
 
 gulp.task('artifacts', $.shell.task([
-    'cd build && if [ "' + artifactsDir + '" != "" ] ; then cp -R * ' + artifactsDir + ' ; fi'
+    artifactsDir ? 'cd build && cp -R * ' + artifactsDir : 'echo "CIRCLE_ARTIFACTS not set"'
 ]));
 
 gulp.task('release', function(done){
