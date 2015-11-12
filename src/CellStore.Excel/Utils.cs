@@ -98,14 +98,16 @@ namespace CellStore.Excel.Tools
             return results;
         }
 
-        public static bool hasEntityFilter(String eid, String ticker, String tag)
+        public static bool hasEntityFilter(String eid, String ticker, String tag, Dictionary<string, string> dimensions)
         {
-            return eid != null || ticker != null || tag != null;
+            return eid != null || ticker != null || tag != null ||
+                (dimensions != null && dimensions.ContainsKey("xbrl:Entity"));
         }
 
-        public static bool hasConceptFilter(String concept)
+        public static bool hasConceptFilter(String concept, Dictionary<string, string> dimensions)
         {
-            return concept != null;
+            return concept != null ||
+                (dimensions != null && dimensions.ContainsKey("xbrl:Concept"));
         }
 
         public static bool hasAdditionalFilter(String fiscalYear, String fiscalPeriod, Dictionary<string, string> dimensions)
@@ -187,7 +189,7 @@ namespace CellStore.Excel.Tools
         }
 
         public static Dictionary<string, string> castStringDictionary(
-            Object param, String paramName)
+            Object param, String paramName, String suffix)
         {
             if (param == null || param is ExcelEmpty || param is ExcelMissing)
             {
@@ -213,8 +215,8 @@ namespace CellStore.Excel.Tools
                     {
                         throw new ArgumentException(errormsg, paramName);
                     }
-                    Regex regex = new Regex("^[^:]+:[^:]+$");
-                    string param_Key = tokenz[0];
+                    Regex regex = new Regex("^[^:]+:[^:]+" + suffix + "$");
+                    string param_Key = tokenz[0] + suffix;
                     if (!regex.IsMatch(param_Key))
                     {
                         param_Key = tokenz[0] + "";
@@ -235,9 +237,9 @@ namespace CellStore.Excel.Tools
         }
 
         public static Dictionary<string, bool> castBoolDictionary(
-            Object param, String paramName)
+            Object param, String paramName, String suffix)
         {
-            Dictionary<string, string> dictString = castStringDictionary(param, paramName);
+            Dictionary<string, string> dictString = castStringDictionary(param, paramName, suffix);
             if (dictString == null)
             {
                 return null;
@@ -252,9 +254,9 @@ namespace CellStore.Excel.Tools
         }
 
         public static Dictionary<string, int> castIntDictionary(
-            Object param, String paramName)
+            Object param, String paramName, String suffix)
         {
-            Dictionary<string, string> dictString = castStringDictionary(param, paramName);
+            Dictionary<string, string> dictString = castStringDictionary(param, paramName, suffix);
             if (dictString == null)
             {
                 return null;

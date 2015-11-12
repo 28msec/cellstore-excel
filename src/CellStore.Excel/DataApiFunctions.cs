@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using ExcelDna.Integration;
 using CellStore.Excel.Client;
 using CellStore.Excel.Tools;
+using System.Text;
 
 namespace CellStore.Excel.Api
 {
@@ -82,7 +83,9 @@ namespace CellStore.Excel.Api
           [ExcelArgument("Specifies which profile to use. The default depends on the underlying repository", Name="profileName")]
             Object profileName = null, 
           [ExcelArgument("A set of dimension names and values used for filtering. As a value, the value of the dimension or ALL can be provided if all facts with this dimension should be retrieved. Each key is in the form prefix:dimension, each value is a string", Name="dimensions")]
-            Object[] dimensions = null, 
+            Object[] dimensions = null,
+          [ExcelArgument("The default value of the dimension [prefix:dimension] that should be returned if the dimension was not provided explicitly for a fact.", Name="dimensionDefaults")]
+            Object[] dimensionDefaults = null,
           [ExcelArgument("Sets the given dimensions to be typed dimensions with the specified type. (Default: xbrl:Entity/xbrl:Period/xbrl:Unit/xbrl28:Archive are typed string, others are explicit dimensions. Some further dimensions may have default types depending on the profile.). Each key is in the form prefix:dimension::type, each value is a string", Name="dimensionTypes")]
             Object[] dimensionTypes = null,
           [ExcelArgument("Excludes (\"aggregate\") or includes (\"group\") the dimension in those used to group facts with the supplied aggregation function. By default, all key aspects are used as grouping keys and facts are aggregated along non-key aspects. Has no effect if no aggregation function is supplied.", Name="dimensionAggregation")]
@@ -118,13 +121,15 @@ namespace CellStore.Excel.Api
                 string profileName_casted = Utils.castParamString(profileName, "profileName", false);
 
                 Dictionary<string, string> dimensions_casted = 
-                    Utils.castStringDictionary(dimensions, "dimensions");
-                Dictionary<string, string> dimensionTypes_casted = 
-                    Utils.castStringDictionary(dimensionTypes, "dimensionTypes");
+                    Utils.castStringDictionary(dimensions, "dimensions", "");
+                Dictionary<string, string> dimensionDefaults_casted =
+                    Utils.castStringDictionary(dimensionDefaults, "dimensionDefaults", "::default");
+                Dictionary <string, string> dimensionTypes_casted = 
+                    Utils.castStringDictionary(dimensionTypes, "dimensionTypes", "::type");
                 /*Dictionary<string, bool?> dimensionSlicers_casted =
                     Utils.castBoolDictionary(dimensionSlicers, "dimensionSlicers");*/
                 Dictionary<string, string> dimensionAggregation_casted =
-                    Utils.castStringDictionary(dimensionAggregation, "dimensionAggregation");
+                    Utils.castStringDictionary(dimensionAggregation, "dimensionAggregation", "::aggregation");
 
                 bool count_casted = Utils.castParamBool(count, "count", false);
                 int? top_casted = Utils.castParamInt(top, "top", 100);
@@ -132,11 +137,31 @@ namespace CellStore.Excel.Api
 
                 bool debugInfo_casted = Utils.castParamBool(debugInfo, "debugInfo", false); 
 
-                if(!(Utils.hasEntityFilter(eid_casted, ticker_casted, tag_casted)
-                    && Utils.hasConceptFilter(concept_casted)
+                if(!(Utils.hasEntityFilter(eid_casted, ticker_casted, tag_casted, dimensions_casted)
+                    && Utils.hasConceptFilter(concept_casted, dimensions_casted)
                     && Utils.hasAdditionalFilter(fiscalYear_casted, fiscalPeriod_casted, dimensions_casted)))
                 {
                     throw new Exception("Too generic filter.");
+                }
+
+                if(dimensions_casted != null)
+                {
+                    StringBuilder sb = new StringBuilder();
+                    foreach (KeyValuePair<string, string> entry in dimensions_casted)
+                    {
+                        sb.Append(entry.Key);
+                        sb.Append("=");
+                        sb.Append(entry.Value);
+                        sb.Append(" | ");
+                    }
+                    foreach (KeyValuePair<string, string> entry in dimensionDefaults_casted)
+                    {
+                        sb.Append(entry.Key);
+                        sb.Append("=");
+                        sb.Append(entry.Value);
+                        sb.Append(" | ");
+                    }
+                    Utils.log(sb.ToString());
                 }
 
                 dynamic response = api.ListFacts(
@@ -155,6 +180,7 @@ namespace CellStore.Excel.Api
                   aggregationFunction: aggregationFunction_casted,
                   profileName: profileName_casted,
                   dimensions: dimensions_casted,
+                  defaultDimensionValues: dimensionDefaults_casted,
                   dimensionTypes: dimensionTypes_casted,
                   dimensionAggregation: dimensionAggregation_casted,
                   count: count_casted,
