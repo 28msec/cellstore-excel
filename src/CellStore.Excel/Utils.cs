@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -16,12 +17,18 @@ namespace CellStore.Excel.Tools
     public class Utils
     {
 
-        public static String logPath =
-            System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData);
+        private static String logPathDir =
+            System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData) 
+                + "\\28msec";
+        public static String logPath = logPathDir + "\\CellStore.Excel.log";
 
         public static void log(String message)
         {
-            System.IO.StreamWriter file = new System.IO.StreamWriter("c:\\excelLog.txt", true);
+            if (!Directory.Exists(logPathDir))
+            {
+                Directory.CreateDirectory(logPathDir);
+            }
+            System.IO.StreamWriter file = new System.IO.StreamWriter(logPath, true);
             file.WriteLine("LOG {0}", message);
             file.Close();
         }
@@ -57,7 +64,6 @@ namespace CellStore.Excel.Tools
             String caption = "ERROR";
             String msg = ex.Message;
             log(caption + ": " + msg);
-            MessageBox.Show(msg, caption);
             Object[,] error = new Object[,] { { "# ERROR " + msg } };
             return error;
         }
@@ -90,6 +96,21 @@ namespace CellStore.Excel.Tools
                 MessageBox.Show(sb.ToString(), "Facts Debug Info");
             }
             return results;
+        }
+
+        public static bool hasEntityFilter(String eid, String ticker, String tag)
+        {
+            return eid != null || ticker != null || tag != null;
+        }
+
+        public static bool hasConceptFilter(String concept)
+        {
+            return concept != null;
+        }
+
+        public static bool hasAdditionalFilter(String fiscalYear, String fiscalPeriod, Dictionary<string, string> dimensions)
+        {
+            return fiscalYear != null || fiscalPeriod != null || dimensions != null;
         }
 
         public static String castParamString(

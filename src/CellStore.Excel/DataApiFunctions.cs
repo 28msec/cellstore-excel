@@ -89,7 +89,7 @@ namespace CellStore.Excel.Api
             Object[] dimensionAggregation = null,
           [ExcelArgument("If true, only returns count of the result (default is false)", Name="count")]
             Object count = null, 
-          [ExcelArgument("Output only the first [top] results (default: no limit).", Name="top")]
+          [ExcelArgument("Output only the first [top] results (default: 100).", Name="top")]
             Object top = null/*,
           [ExcelArgument("Skip the first [skip] results (default: 0)", Name="skip")]
             Object skip = null*/,
@@ -129,10 +129,17 @@ namespace CellStore.Excel.Api
                     Utils.castStringDictionary(dimensionAggregation, "dimensionAggregation");
 
                 bool count_casted = Utils.castParamBool(count, "count", false);
-                int? top_casted = Utils.castParamInt(top, "top", null);
+                int? top_casted = Utils.castParamInt(top, "top", 100);
                 //int? skip_casted = Utils.castParamInt(skip, "skip", 0);
 
                 bool debugInfo_casted = Utils.castParamBool(debugInfo, "debugInfo", false); 
+
+                if(!(Utils.hasEntityFilter(eid_casted, ticker_casted, tag_casted)
+                    && Utils.hasConceptFilter(concept_casted)
+                    && Utils.hasAdditionalFilter(fiscalYear_casted, fiscalPeriod_casted, dimensions_casted)))
+                {
+                    throw new Exception("Too generic filter.");
+                }
 
                 dynamic response = api.ListFacts(
                   token: token_casted,
