@@ -53,11 +53,11 @@ gulp.task('install-dependencies', ['clean'], $.shell.task([
     'cp build/RestSharp.' + config.RestSharp + '/lib/net45/RestSharp.dll build/bin/RestSharp.dll'
 ]));
 
-gulp.task('compile', ['install-dependencies'], $.shell.task([
+gulp.task('compile', $.shell.task([
     pathFix(compileCmd + ' -r:build/bin/ExcelDna.Integration.dll,build/bin/Newtonsoft.Json.dll,build/bin/RestSharp.dll,build/bin/CellStore.dll,System.Windows.Forms.dll -target:library -out:build/bin/CellStore.Excel.dll -recurse:src/*.cs -platform:anycpu')
 ]));
 
-gulp.task('pack', ['compile'], $.shell.task([
+gulp.task('build', ['compile'], $.shell.task([
     'cd build && cd bin && ' + packCmd + ' CellStore.Excel.dna /Y',
     'cp build/bin/CellStore.Excel-packed.xll build/release/CellStore.Excel.xll'
 ]));
@@ -75,14 +75,16 @@ gulp.task('publish', function(){
         }));
 });
 
-gulp.task('build', function(done){
-    $.runSequence('pack', 'artifacts', function(){
-        if(isOnTravisAndMaster) {
-            $.runSequence('publish', done);
-        } else {
+gulp.task('release', function(done){
+    if(isOnTravisAndMaster) {
+        // @TODO ExcelDnaPack doesn't work on linux
+        $.runSequence('install-dependencies', 'compile', 'artifacts', function () {
+            //$.runSequence('publish', done);
             done();
-        }
-    });
+        });
+    } else {
+        $.runSequence('install-dependencies', 'build', done);
+    }
 });
 
 gulp.task('default', ['build']);

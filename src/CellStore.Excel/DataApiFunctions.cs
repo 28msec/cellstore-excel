@@ -51,7 +51,7 @@ namespace CellStore.Excel.Api
             "Retrieve one or more facts for a combination of filings. Please note, that in case multiple facts are returned Excel will only display the first one in a Cell. Nevertheless, you can apply aggregation function such as sum to all of them.",
             Name = "ListFacts", 
             Category = "CellStore.Excel.DataApi")]
-        public static Object[,] ListFacts (
+        public static Object ListFacts (
           [ExcelArgument("The base Path of the Cell Store endpoint (default: 'http://secxbrl.28.io/v1/_queries/public')", Name="basePath")]
             Object basePath = null,
           [ExcelArgument("The token of the current session", Name="token")]
@@ -82,14 +82,18 @@ namespace CellStore.Excel.Api
             Object aggregationFunction = null, 
           [ExcelArgument("Specifies which profile to use. The default depends on the underlying repository", Name="profileName")]
             Object profileName = null, 
-          [ExcelArgument("A set of dimension names and values used for filtering. As a value, the value of the dimension or ALL can be provided if all facts with this dimension should be retrieved. Each key is in the form prefix:dimension, each value is a string", Name="dimensions")]
-            Object[] dimensions = null,
-          [ExcelArgument("The default value of the dimension [prefix:dimension] that should be returned if the dimension was not provided explicitly for a fact.", Name="dimensionDefaults")]
-            Object[] dimensionDefaults = null,
-          [ExcelArgument("Sets the given dimensions to be typed dimensions with the specified type. (Default: xbrl:Entity/xbrl:Period/xbrl:Unit/xbrl28:Archive are typed string, others are explicit dimensions. Some further dimensions may have default types depending on the profile.). Each key is in the form prefix:dimension::type, each value is a string", Name="dimensionTypes")]
-            Object[] dimensionTypes = null,
-          [ExcelArgument("Excludes (\"aggregate\") or includes (\"group\") the dimension in those used to group facts with the supplied aggregation function. By default, all key aspects are used as grouping keys and facts are aggregated along non-key aspects. Has no effect if no aggregation function is supplied.", Name="dimensionAggregation")]
-            Object[] dimensionAggregation = null,
+          [ExcelArgument("A set of dimension names and values used for filtering. As a value, the value of the dimension or ALL can be provided if all facts with this dimension should be retrieved. Each key is in the form prefix:dimension, each value is a string", 
+                         Name="dimensions", AllowReference = true)]
+            Object dimensions = null,
+          [ExcelArgument("The default value of the dimension [prefix:dimension] that should be returned if the dimension was not provided explicitly for a fact.", 
+                         Name="dimensionDefaults", AllowReference = true)]
+            Object dimensionDefaults = null,
+          [ExcelArgument("Sets the given dimensions to be typed dimensions with the specified type. (Default: xbrl:Entity/xbrl:Period/xbrl:Unit/xbrl28:Archive are typed string, others are explicit dimensions. Some further dimensions may have default types depending on the profile.). Each key is in the form prefix:dimension::type, each value is a string", 
+                          Name="dimensionTypes", AllowReference = true)]
+            Object dimensionTypes = null,
+          [ExcelArgument("Excludes (\"aggregate\") or includes (\"group\") the dimension in those used to group facts with the supplied aggregation function. By default, all key aspects are used as grouping keys and facts are aggregated along non-key aspects. Has no effect if no aggregation function is supplied.", 
+                         Name="dimensionAggregation", AllowReference = true)]
+            Object dimensionAggregation = null,
           [ExcelArgument("If true, only returns count of the result (default is false)", Name="count")]
             Object count = null, 
           [ExcelArgument("Output only the first [top] results (default: 100).", Name="top")]

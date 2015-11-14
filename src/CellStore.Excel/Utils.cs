@@ -33,19 +33,44 @@ namespace CellStore.Excel.Tools
             file.Close();
         }
 
+        private static double? getValueDouble(JObject fact)
+        {
+            JValue value = ((JValue)fact["Value"]);
+            if (value != null && value.Type != JTokenType.Null && value.ToString() != String.Empty)
+            {
+                return value.Value<double>();
+            }
+            return null;
+        }
+
+        private static string getAspectValue(JObject fact, String aspectName)
+        {
+            JObject aspects = (JObject)fact["Aspects"];
+            JValue aspect = ((JValue)aspects[aspectName]);
+            if (aspect != null && aspect.Type != JTokenType.Null)
+            {
+                return aspect.Value<String>();
+            }
+            else if (aspect != null && aspect.Type == JTokenType.Null)
+            {
+                return "null";
+            }
+            return String.Empty;
+        }
+
         private static string factToString(JObject fact)
         {
             StringBuilder sb = new StringBuilder();
             JObject aspects = (JObject)fact["Aspects"];
-            String archive = ((JValue)aspects["xbrl28:Archive"]).Value<String>();
-            String entity = ((JValue)aspects["xbrl:Entity"]).Value<String>();
-            String period = ((JValue)aspects["xbrl:Period"]).Value<String>();
-            String concept = ((JValue)aspects["xbrl:Concept"]).Value<String>();
-            String unit = ((JValue)aspects["xbrl:Unit"]).Value<String>();
-            String value = ((JValue)fact["Value"]).Value<String>();
+            String archive = getAspectValue(fact, "xbrl28:Archive");
+            String entity = getAspectValue(fact, "xbrl:Entity");
+            String period = getAspectValue(fact, "xbrl:Period");
+            String concept = getAspectValue(fact, "xbrl:Concept");
+            String unit = getAspectValue(fact, "xbrl:Unit");
+            double? value = getValueDouble(fact);
 
-            sb.AppendLine(concept + "= " + value);
-            sb.AppendLine(entity + " (" + archive + ", " + period + ", " + unit + ")");
+            sb.AppendLine("Value=" + value);
+            sb.AppendLine("Concept=" + concept + " Entity=" + entity + " Archive=" + archive + " Period=" + period + " Unit=" + unit);
             List<string> ignore = new List<string> { "xbrl28:Archive", "xbrl:Entity", "xbrl:Period", "xbrl:Concept", "xbrl:Unit" };
             foreach (JValue keyAspect in fact["KeyAspects"].Children())
             {
@@ -53,8 +78,9 @@ namespace CellStore.Excel.Tools
                 if (ignore.Contains(dim))
                     continue;
                 String mem = ((JValue)aspects[dim]).Value<String>();
-                sb.AppendLine(dim + "= " + mem);
+                sb.Append(dim + "=" + mem + " ");
             }
+            sb.AppendLine("");
             sb.AppendLine("------------------------------------");
             return sb.ToString();
         }
@@ -68,31 +94,35 @@ namespace CellStore.Excel.Tools
             return error;
         }
 
-        public static Object[,] getFactTableResult(dynamic response, bool debugInfo = false)
+        public static Object getFactTableResult(dynamic response, bool debugInfo = false)
         {
             JArray facts = (JArray)response["FactTable"];
-            Object[,] results;
+            Object[] results;
             if (facts.Count > 0)
             {
-                results = new Object[facts.Count, 1];
+                results = new Object[facts.Count];
             }
             else
             {
-                results = new Object[1, 1] { { ExcelEmpty.Value } };
+                results = new Object[] { ExcelEmpty.Value };
             }
 
             StringBuilder sb = new StringBuilder();
             int row = 0;
             foreach (JObject fact in facts.Children())
             {
-                JValue value = (JValue)fact["Value"];
-                results[row, 0] = value.Value<double>();
-                if (debugInfo)
-                    sb.Append(factToString(fact));
-                row++;
+                double? value = getValueDouble(fact);
+                if (value != null)
+                {
+                    results[row] = value;
+                    if (debugInfo)
+                        sb.Append(factToString(fact));
+                    row++;
+                }
             }
             if (debugInfo)
             {
+                Utils.log(facts.ToString());
                 MessageBox.Show(sb.ToString(), "Facts Debug Info");
             }
             return results;
@@ -146,7 +176,7 @@ namespace CellStore.Excel.Tools
             Object param, String paramName, bool defaultVal)
         {
             bool param_casted;
-            if (param is bool)
+            if (param is Boolean)
             {
                 param_casted = Convert.ToBoolean(param);
             }
@@ -154,7 +184,7 @@ namespace CellStore.Excel.Tools
             {
                 param_casted = Convert.ToBoolean(param);
             }
-            else if (param is ExcelEmpty || param is ExcelMissing)
+            else if (param == null || param is ExcelEmpty || param is ExcelMissing)
             {
                 param_casted = defaultVal;
             }
@@ -177,7 +207,7 @@ namespace CellStore.Excel.Tools
             {
                 param_casted = Convert.ToInt32(param);
             }
-            else if (param is ExcelEmpty || param is ExcelMissing)
+            else if (param == null || param is ExcelEmpty || param is ExcelMissing)
             {
                 param_casted = defaultVal;
             }
@@ -188,18 +218,11 @@ namespace CellStore.Excel.Tools
             return param_casted;
         }
 
-        public static Dictionary<string, string> castStringDictionary(
-            Object param, String paramName, String suffix)
+        private static void readFromObject(Object param, String paramName, String suffix, Dictionary<string, string> dict)
         {
-            if (param == null || param is ExcelEmpty || param is ExcelMissing)
-            {
-                return null;
-            }
-
-            Dictionary<string, string> dict = null;
             if (param is Object[])
             {
-                dict = new Dictionary<string, string>();
+                //Utils.log("Object[]");
                 Object[] param_casted = (Object[])param;
                 int param_d1 = param_casted.Length;
                 for (int i = 0; i < param_d1; i++)
@@ -208,32 +231,89 @@ namespace CellStore.Excel.Tools
                     {
                         continue;
                     }
-                    string param_Val = Convert.ToString(param_casted[i]);
-                    string[] tokenz = param_Val.Split('=');
-                    string errormsg = "Invalid Parameter value '" + param_Val + "' for parameter '" + paramName + "'. Accepted format: 'prefix:Dimension=value'.";
-                    if (tokenz.Length != 2)
-                    {
-                        throw new ArgumentException(errormsg, paramName);
-                    }
-                    Regex regex = new Regex("^[^:]+:[^:]+" + suffix + "$");
-                    string param_Key = tokenz[0] + suffix;
-                    if (!regex.IsMatch(param_Key))
-                    {
-                        param_Key = tokenz[0] + "";
-                    }
-                    if (!regex.IsMatch(param_Key))
-                    {
-                        throw new ArgumentException(errormsg, paramName);
-                    }
-                    string param_Value = Convert.ToString(tokenz[1]);
-                    dict.Add(param_Key, param_Value);
+                    readFromObject(param_casted[i], paramName, suffix, dict);
                 }
-                return dict;
+            }
+            else if (param is Object[,])
+            {
+                //Utils.log("Object[,]");
+                Object[,] param_casted = (Object[,])param;
+                int param_d1 = param_casted.GetLength(0);
+                int param_d2 = param_casted.GetLength(1);
+                for (int i = 0; i < param_d1; i++)
+                {
+                    for (int j = 0; j < param_d2; j++)
+                    {
+                        if (param_casted[i, j] == null || param_casted[i, j] is ExcelEmpty || param_casted[i, j] is ExcelMissing)
+                        {
+                            continue;
+                        }
+                        readFromObject(param_casted[i, j], paramName, suffix, dict);
+                    }
+                }
+            }
+            else if (param is ExcelReference)
+            {
+                //Utils.log("ExcelReference");
+                ExcelReference reference = (ExcelReference) param;
+                List<ExcelReference> list = reference.InnerReferences;
+                if (reference.GetValue() is ExcelError && list != null && list.ToArray().Length > 0)
+                {
+                    foreach (ExcelReference refer in list)
+                    {
+                        Object val = refer.GetValue();
+                        readFromObject(val, paramName, suffix, dict);
+                    }
+                }
+                else
+                {
+                    readFromObject(reference.GetValue(), paramName, suffix, dict);
+                }
+            }
+            else if (param is string)
+            {
+                string param_Val = Convert.ToString(param);
+                //Utils.log("val: " + param_Val);
+                string[] tokenz = param_Val.Split('=');
+                string errormsg = "Invalid Parameter value '" + param_Val + "' for parameter '" + paramName + "'. Accepted format: 'prefix:Dimension=value'.";
+                if (tokenz.Length != 2)
+                {
+                    throw new ArgumentException(errormsg, paramName);
+                }
+                Regex regex = new Regex("^[^:]+:[^:]+" + suffix + "$");
+                string param_Key = tokenz[0] + suffix;
+                if (!regex.IsMatch(param_Key))
+                {
+                    param_Key = tokenz[0] + "";
+                }
+                if (!regex.IsMatch(param_Key))
+                {
+                    throw new ArgumentException(errormsg, paramName);
+                }
+                string param_Value = Convert.ToString(tokenz[1]);
+                dict.Add(param_Key, param_Value);
+            }
+            else if (param == null || param is ExcelEmpty || param is ExcelMissing)
+            {
+                ; // skip
             }
             else
             {
-                throw new ArgumentException("Invalid Parameter value '" + paramName + "'.", paramName);
+                throw new ArgumentException("Invalid Parameter value '" + Convert.ToString(param)  + "' for '" + paramName + "'.", paramName);
             }
+        }
+
+        public static Dictionary<string, string> castStringDictionary(
+            Object param, String paramName, String suffix)
+        {
+            if (param == null || param is ExcelEmpty || param is ExcelMissing)
+            {
+                return null;
+            }
+
+            Dictionary<string, string> dict = new Dictionary<string, string>();
+            readFromObject(param, paramName, suffix, dict);
+            return dict;
         }
 
         public static Dictionary<string, bool> castBoolDictionary(

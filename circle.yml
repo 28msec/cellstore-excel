@@ -10,4 +10,4 @@ dependencies:
     - echo -ne '\n' | sudo certmgr -ssl -m https://nuget.org
 test:
   override:
-    - gulp
+    - gulp release
