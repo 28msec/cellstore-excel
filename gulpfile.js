@@ -76,8 +76,8 @@ gulp.task('publish', function(){
 });
 
 gulp.task('release', function(done){
-    if(isOnTravisAndMaster) {
-        // @TODO ExcelDnaPack doesn't work on linux
+    if(isOnTravis) {
+        // @TODO We cannot automatically release because ExcelDnaPack doesn't work on linux
         $.runSequence('install-dependencies', 'compile', 'artifacts', function () {
             //$.runSequence('publish', done);
             done();

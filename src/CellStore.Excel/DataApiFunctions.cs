@@ -148,9 +148,9 @@ namespace CellStore.Excel.Api
                     throw new Exception("Too generic filter.");
                 }
 
-                if(dimensions_casted != null)
+                StringBuilder sb = new StringBuilder();
+                if (dimensions_casted != null)
                 {
-                    StringBuilder sb = new StringBuilder();
                     foreach (KeyValuePair<string, string> entry in dimensions_casted)
                     {
                         sb.Append(entry.Key);
@@ -158,6 +158,9 @@ namespace CellStore.Excel.Api
                         sb.Append(entry.Value);
                         sb.Append(" | ");
                     }
+                }
+                if (dimensionDefaults_casted != null)
+                {
                     foreach (KeyValuePair<string, string> entry in dimensionDefaults_casted)
                     {
                         sb.Append(entry.Key);
@@ -165,9 +168,30 @@ namespace CellStore.Excel.Api
                         sb.Append(entry.Value);
                         sb.Append(" | ");
                     }
-                    Utils.log(sb.ToString());
                 }
-
+                if (dimensionTypes_casted != null)
+                {
+                    foreach (KeyValuePair<string, string> entry in dimensionTypes_casted)
+                    {
+                        sb.Append(entry.Key);
+                        sb.Append("=");
+                        sb.Append(entry.Value);
+                        sb.Append(" | ");
+                    }
+                }
+                if (dimensionAggregation_casted != null)
+                {
+                    foreach (KeyValuePair<string, string> entry in dimensionAggregation_casted)
+                    {
+                        sb.Append(entry.Key);
+                        sb.Append("=");
+                        sb.Append(entry.Value);
+                        sb.Append(" | ");
+                    }
+                }
+                if(sb.Length > 0)
+                    Utils.log(sb.ToString());
+                
                 dynamic response = api.ListFacts(
                   token: token_casted,
                   eid: eid_casted,
