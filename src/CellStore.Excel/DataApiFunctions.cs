@@ -50,7 +50,7 @@ namespace CellStore.Excel.Api
         [ExcelFunction(
             "Retrieve one or more facts for a combination of filings. Please note, that in case multiple facts are returned Excel will only display the first one in a Cell. Nevertheless, you can apply aggregation function such as sum to all of them.",
             Name = "ListFacts", 
-            Category = "CellStore.Excel.DataApi")]
+            Category = "CellStore.DataApi")]
         public static Object ListFacts (
           [ExcelArgument("The base Path of the Cell Store endpoint (default: 'http://secxbrl.28.io/v1/_queries/public')", Name="basePath")]
             Object basePath = null,
