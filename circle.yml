@@ -1,0 +1,13 @@
+machine:
+  node:
+    version: 4.1.0
+dependencies:
+  pre:
+    - sudo apt-get install mono-devel
+    - sudo mozroots --import --machine --sync
+    - echo -ne '\n' | sudo certmgr -ssl -m https://go.microsoft.com
+    - echo -ne '\n' | sudo certmgr -ssl -m https://nugetgallery.blob.core.windows.net
+    - echo -ne '\n' | sudo certmgr -ssl -m https://nuget.org
+test:
+  override:
+    - gulp release

@@ -1,0 +1,7 @@
+.idea
+
+node_modules
+build
+src/CellStore.Excel/.vs
+src/CellStore.Excel/obj
+src/CellStore.Excel/bin
