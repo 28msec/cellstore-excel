@@ -15,6 +15,18 @@ $ gulp install-dependencies
 
 Open src/CellStore.Excel/CellStore.Excel.sln to develop with Visual Studio 2015.
 
+## Build
+
+```bash
+$ gulp
+```
+
+Debug build for debugging with Visual Studio:
+
+```bash
+$ gulp -d
+```
+
 ## Install
 
 Close Excel before installing. Then:
@@ -27,5 +39,5 @@ C:\> start /d "%APPDATA%\Microsoft\AddIns" CellStore.Excel.xll
 Or from the git shell:
 
 ```bash
-$ install.sh
+$ ./install.sh
 ```

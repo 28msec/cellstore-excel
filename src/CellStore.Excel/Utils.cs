@@ -21,16 +21,25 @@ namespace CellStore.Excel.Tools
             System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData) 
                 + "\\28msec";
         public static String logPath = logPathDir + "\\CellStore.Excel.log";
+        private static System.IO.StreamWriter logWriter;
 
-        public static void log(String message)
+        public static void initLogWriter()
         {
             if (!Directory.Exists(logPathDir))
             {
                 Directory.CreateDirectory(logPathDir);
             }
-            System.IO.StreamWriter file = new System.IO.StreamWriter(logPath, true);
-            file.WriteLine("LOG {0}", message);
-            file.Close();
+            logWriter = new System.IO.StreamWriter(logPath, true);
+        }
+
+        public static void closeLogWriter()
+        {
+            logWriter.Close();
+        }
+
+        public static void log(String message)
+        {
+            logWriter.WriteLine("{1:HH:mm:ss.fff} LOG {0}", message, DateTime.Now);
         }
 
         private static double? getValueDouble(JObject fact)
@@ -291,6 +300,7 @@ namespace CellStore.Excel.Tools
                     throw new ArgumentException(errormsg, paramName);
                 }
                 string param_Value = Convert.ToString(tokenz[1]);
+                //Utils.log(param_Key + "=" + param_Value);
                 dict.Add(param_Key, param_Value);
             }
             else if (param == null || param is ExcelEmpty || param is ExcelMissing)

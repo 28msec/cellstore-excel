@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using ExcelDna.Integration;
 using CellStore.Excel.Client;
 using CellStore.Excel.Tools;
+using CellStore.Excel.Tasks;
 using System.Text;
 
 namespace CellStore.Excel.Api
@@ -104,125 +105,181 @@ namespace CellStore.Excel.Api
             Object debugInfo = null
           )
         {
-            try
+            ListFactsTask task =
+                new ListFactsTask(
+                    basePath, token, eid, ticker, tag, aid, fiscalYear, concept, fiscalPeriod,
+                    fiscalPeriodType, report, additionalRules,
+                    open, aggregationFunction, profileName,
+                    dimensions, dimensionDefaults, dimensionTypes,
+                    dimensionAggregation, count, top, //skip,
+                    debugInfo
+                );
+            String taskId = task.id();
+            Object result = ExcelAsyncUtil.Run("ListFacts", taskId, delegate {
+                try {
+                    return task.run();
+                }
+                catch (Exception e)
+                {
+                    return Utils.defaultErrorHandler(e);
+                }
+            });
+            if(result.Equals(ExcelError.ExcelErrorNA))
             {
-                string basePath_casted = Utils.castParamString(basePath, "basePath", false, "http://secxbrl.28.io/v1/_queries/public");
-                CellStore.Api.DataApi api = ApiClients.getDataApiClient(basePath_casted);
-                
-                string token_casted = Utils.castParamString(token, "token", true);
-                string eid_casted = Utils.castParamString(eid, "eid", false);
-                string ticker_casted = Utils.castParamString(ticker, "ticker", false);
-                string tag_casted = Utils.castParamString(tag, "tag", false);
-                string aid_casted = Utils.castParamString(aid, "aid", false);
-                string fiscalYear_casted = Utils.castParamString(fiscalYear, "fiscalYear", false);
-                string concept_casted = Utils.castParamString(concept, "concept", false);
-                string fiscalPeriod_casted = Utils.castParamString(fiscalPeriod, "fiscalPeriod", false);
-                string fiscalPeriodType_casted = Utils.castParamString(fiscalPeriodType, "fiscalPeriodType", false);
-                string report_casted = Utils.castParamString(report, "report", false);
-                string additionalRules_casted = Utils.castParamString(additionalRules, "additionalRules", false);
-                bool open_casted = Utils.castParamBool(open, "open", false);
-                string aggregationFunction_casted = Utils.castParamString(aggregationFunction, "aggregationFunction", false);
-                string profileName_casted = Utils.castParamString(profileName, "profileName", false);
-
-                Dictionary<string, string> dimensions_casted = 
-                    Utils.castStringDictionary(dimensions, "dimensions", "");
-                Dictionary<string, string> dimensionDefaults_casted =
-                    Utils.castStringDictionary(dimensionDefaults, "dimensionDefaults", "::default");
-                Dictionary <string, string> dimensionTypes_casted = 
-                    Utils.castStringDictionary(dimensionTypes, "dimensionTypes", "::type");
-                /*Dictionary<string, bool?> dimensionSlicers_casted =
-                    Utils.castBoolDictionary(dimensionSlicers, "dimensionSlicers");*/
-                Dictionary<string, string> dimensionAggregation_casted =
-                    Utils.castStringDictionary(dimensionAggregation, "dimensionAggregation", "::aggregation");
-
-                bool count_casted = Utils.castParamBool(count, "count", false);
-                int? top_casted = Utils.castParamInt(top, "top", 100);
-                //int? skip_casted = Utils.castParamInt(skip, "skip", 0);
-
-                bool debugInfo_casted = Utils.castParamBool(debugInfo, "debugInfo", false); 
-
-                if(!(Utils.hasEntityFilter(eid_casted, ticker_casted, tag_casted, dimensions_casted)
-                    && Utils.hasConceptFilter(concept_casted, dimensions_casted)
-                    && Utils.hasAdditionalFilter(fiscalYear_casted, fiscalPeriod_casted, dimensions_casted)))
-                {
-                    throw new Exception("Too generic filter.");
-                }
-
-                StringBuilder sb = new StringBuilder();
-                if (dimensions_casted != null)
-                {
-                    foreach (KeyValuePair<string, string> entry in dimensions_casted)
-                    {
-                        sb.Append(entry.Key);
-                        sb.Append("=");
-                        sb.Append(entry.Value);
-                        sb.Append(" | ");
-                    }
-                }
-                if (dimensionDefaults_casted != null)
-                {
-                    foreach (KeyValuePair<string, string> entry in dimensionDefaults_casted)
-                    {
-                        sb.Append(entry.Key);
-                        sb.Append("=");
-                        sb.Append(entry.Value);
-                        sb.Append(" | ");
-                    }
-                }
-                if (dimensionTypes_casted != null)
-                {
-                    foreach (KeyValuePair<string, string> entry in dimensionTypes_casted)
-                    {
-                        sb.Append(entry.Key);
-                        sb.Append("=");
-                        sb.Append(entry.Value);
-                        sb.Append(" | ");
-                    }
-                }
-                if (dimensionAggregation_casted != null)
-                {
-                    foreach (KeyValuePair<string, string> entry in dimensionAggregation_casted)
-                    {
-                        sb.Append(entry.Key);
-                        sb.Append("=");
-                        sb.Append(entry.Value);
-                        sb.Append(" | ");
-                    }
-                }
-                if(sb.Length > 0)
-                    Utils.log(sb.ToString());
-                
-                dynamic response = api.ListFacts(
-                  token: token_casted,
-                  eid: eid_casted,
-                  ticker: ticker_casted,
-                  tag: tag_casted,
-                  aid: aid_casted,
-                  fiscalYear: fiscalYear_casted,
-                  concept: concept_casted,
-                  fiscalPeriod: fiscalPeriod_casted,
-                  fiscalPeriodType: fiscalPeriodType_casted,
-                  report: report_casted,
-                  additionalRules: additionalRules_casted,
-                  open: open_casted,
-                  aggregationFunction: aggregationFunction_casted,
-                  profileName: profileName_casted,
-                  dimensions: dimensions_casted,
-                  defaultDimensionValues: dimensionDefaults_casted,
-                  dimensionTypes: dimensionTypes_casted,
-                  dimensionAggregation: dimensionAggregation_casted,
-                  count: count_casted,
-                  top: top_casted);
-                  //skip: skip_casted);
-                return Utils.getFactTableResult(response, debugInfo_casted);
+                return "# Loading";
             }
-            catch (Exception e)
+            else
             {
-                return Utils.defaultErrorHandler(e);
+                return result;
             }
         }
         #endregion
-        
+
+        /*        public static Object ListFactsSync(
+                    Object basePath = null,
+                    Object token = null,
+                    Object eid = null,
+                    Object ticker = null,
+                    Object tag = null,
+                    Object aid = null,
+                    Object fiscalYear = null,
+                    Object concept = null,
+                    Object fiscalPeriod = null,
+                    Object fiscalPeriodType = null,
+                    Object report = null,
+                    Object additionalRules = null,
+                    Object open = null,
+                    Object aggregationFunction = null,
+                    Object profileName = null,
+                    Object dimensions = null,
+                    Object dimensionDefaults = null,
+                    Object dimensionTypes = null,
+                    Object dimensionAggregation = null,
+                    Object count = null,
+                    Object top = null/*,
+                    Object skip = null/,
+                    Object debugInfo = null
+                  )
+                {
+                    try
+                    {
+                        string basePath_casted = Utils.castParamString(basePath, "basePath", false, "http://secxbrl.28.io/v1/_queries/public");
+                        CellStore.Api.DataApi api = ApiClients.getDataApiClient(basePath_casted);
+
+                        string token_casted = Utils.castParamString(token, "token", true);
+                        string eid_casted = Utils.castParamString(eid, "eid", false);
+                        string ticker_casted = Utils.castParamString(ticker, "ticker", false);
+                        string tag_casted = Utils.castParamString(tag, "tag", false);
+                        string aid_casted = Utils.castParamString(aid, "aid", false);
+                        string fiscalYear_casted = Utils.castParamString(fiscalYear, "fiscalYear", false);
+                        string concept_casted = Utils.castParamString(concept, "concept", false);
+                        string fiscalPeriod_casted = Utils.castParamString(fiscalPeriod, "fiscalPeriod", false);
+                        string fiscalPeriodType_casted = Utils.castParamString(fiscalPeriodType, "fiscalPeriodType", false);
+                        string report_casted = Utils.castParamString(report, "report", false);
+                        string additionalRules_casted = Utils.castParamString(additionalRules, "additionalRules", false);
+                        bool open_casted = Utils.castParamBool(open, "open", false);
+                        string aggregationFunction_casted = Utils.castParamString(aggregationFunction, "aggregationFunction", false);
+                        string profileName_casted = Utils.castParamString(profileName, "profileName", false);
+
+                        Dictionary<string, string> dimensions_casted = 
+                            Utils.castStringDictionary(dimensions, "dimensions", "");
+                        Dictionary<string, string> dimensionDefaults_casted =
+                            Utils.castStringDictionary(dimensionDefaults, "dimensionDefaults", "::default");
+                        Dictionary <string, string> dimensionTypes_casted = 
+                            Utils.castStringDictionary(dimensionTypes, "dimensionTypes", "::type");
+                        Dictionary<string, string> dimensionAggregation_casted =
+                            Utils.castStringDictionary(dimensionAggregation, "dimensionAggregation", "::aggregation");
+
+                        bool count_casted = Utils.castParamBool(count, "count", false);
+                        int? top_casted = Utils.castParamInt(top, "top", 100);
+                        //int? skip_casted = Utils.castParamInt(skip, "skip", 0);
+
+                        bool debugInfo_casted = Utils.castParamBool(debugInfo, "debugInfo", false); 
+
+                        if(!(Utils.hasEntityFilter(eid_casted, ticker_casted, tag_casted, dimensions_casted)
+                            && Utils.hasConceptFilter(concept_casted, dimensions_casted)
+                            && Utils.hasAdditionalFilter(fiscalYear_casted, fiscalPeriod_casted, dimensions_casted)))
+                        {
+                            throw new Exception("Too generic filter.");
+                        }
+
+                        StringBuilder sb = new StringBuilder();
+                        if (dimensions_casted != null)
+                        {
+                            foreach (KeyValuePair<string, string> entry in dimensions_casted)
+                            {
+                                sb.Append(entry.Key);
+                                sb.Append("=");
+                                sb.Append(entry.Value);
+                                sb.Append(" | ");
+                            }
+                        }
+                        if (dimensionDefaults_casted != null)
+                        {
+                            foreach (KeyValuePair<string, string> entry in dimensionDefaults_casted)
+                            {
+                                sb.Append(entry.Key);
+                                sb.Append("=");
+                                sb.Append(entry.Value);
+                                sb.Append(" | ");
+                            }
+                        }
+                        if (dimensionTypes_casted != null)
+                        {
+                            foreach (KeyValuePair<string, string> entry in dimensionTypes_casted)
+                            {
+                                sb.Append(entry.Key);
+                                sb.Append("=");
+                                sb.Append(entry.Value);
+                                sb.Append(" | ");
+                            }
+                        }
+                        if (dimensionAggregation_casted != null)
+                        {
+                            foreach (KeyValuePair<string, string> entry in dimensionAggregation_casted)
+                            {
+                                sb.Append(entry.Key);
+                                sb.Append("=");
+                                sb.Append(entry.Value);
+                                sb.Append(" | ");
+                            }
+                        }
+                        if(sb.Length > 0)
+                            Utils.log("FETCH: " + sb.ToString());
+
+                        dynamic response = api.ListFacts(
+                            token: token_casted,
+                            eid: eid_casted,
+                            ticker: ticker_casted,
+                            tag: tag_casted,
+                            aid: aid_casted,
+                            fiscalYear: fiscalYear_casted,
+                            concept: concept_casted,
+                            fiscalPeriod: fiscalPeriod_casted,
+                            fiscalPeriodType: fiscalPeriodType_casted,
+                            report: report_casted,
+                            additionalRules: additionalRules_casted,
+                            open: open_casted,
+                            aggregationFunction: aggregationFunction_casted,
+                            profileName: profileName_casted,
+                            dimensions: dimensions_casted,
+                            defaultDimensionValues: dimensionDefaults_casted,
+                            dimensionTypes: dimensionTypes_casted,
+                            dimensionAggregation: dimensionAggregation_casted,
+                            count: count_casted,
+                            top: top_casted);
+                            //skip: skip_casted);
+
+                        Utils.log("RECEIVED: " + sb.ToString());
+                        return Utils.getFactTableResult(response, debugInfo_casted);
+                    }
+                    catch (Exception e)
+                    {
+                        return Utils.defaultErrorHandler(e);
+                    }
+                }
+                #endregion*/
+
     }
-    
+
 }
