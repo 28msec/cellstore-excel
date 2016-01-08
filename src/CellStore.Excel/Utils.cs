@@ -40,6 +40,7 @@ namespace CellStore.Excel.Tools
         public static void log(String message)
         {
             logWriter.WriteLine("{1:HH:mm:ss.fff} LOG {0}", message, DateTime.Now);
+            logWriter.Flush();
         }
 
         private static double? getValueDouble(JObject fact)
@@ -134,6 +135,13 @@ namespace CellStore.Excel.Tools
                 Utils.log(facts.ToString());
                 MessageBox.Show(sb.ToString(), "Facts Debug Info");
             }
+            if(results.Length > 1)
+            {
+                return new Object[]
+                {
+                    string.Join("|", results)
+                };
+            }
             return results;
         }
 
@@ -166,7 +174,23 @@ namespace CellStore.Excel.Tools
             {
                 param_casted = Convert.ToString(param);
             }
-            else if (!isMandatory && (param == null || param is ExcelEmpty || param is ExcelMissing))
+            else if (param is Boolean)
+            {
+                param_casted = Convert.ToString(param);
+            }
+            else if (param is ExcelReference)
+            {
+                ExcelReference reference = (ExcelReference)param;
+                List<ExcelReference> list = reference.InnerReferences;
+                if (reference.GetValue() is ExcelError && list != null && list.ToArray().Length > 0)
+                {
+                    param_casted = castParamString(list[0], paramName, isMandatory, defaultVal);
+                }
+                else
+                {
+                    param_casted = castParamString(reference.GetValue(), paramName, isMandatory, defaultVal);
+                }
+            } else if (!isMandatory && (param == null || param is ExcelEmpty || param is ExcelMissing))
             {
                 param_casted = defaultVal;
             }
@@ -190,6 +214,10 @@ namespace CellStore.Excel.Tools
                 param_casted = Convert.ToBoolean(param);
             }
             else if (param is double)
+            {
+                param_casted = Convert.ToBoolean(param);
+            }
+            else if (param is string)
             {
                 param_casted = Convert.ToBoolean(param);
             }
@@ -291,7 +319,7 @@ namespace CellStore.Excel.Tools
                 }
                 Regex regex = new Regex("^[^:]+:[^:]+" + suffix + "$");
                 string param_Key = tokenz[0] + suffix;
-                if (!regex.IsMatch(param_Key))
+                if (!regex.IsMatch(param_Key)) // the user might have used the suffix already
                 {
                     param_Key = tokenz[0] + "";
                 }

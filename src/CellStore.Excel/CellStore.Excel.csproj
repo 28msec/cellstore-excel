@@ -54,6 +54,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ApiClients.cs" />
+    <Compile Include="Parameters.cs" />
+    <Compile Include="Parameter.cs" />
+    <Compile Include="UtilFunctions.cs" />
     <Compile Include="ListFactsTask.cs" />
     <Compile Include="DataApiFunctions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

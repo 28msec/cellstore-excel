@@ -38,64 +38,39 @@ namespace CellStore.Excel.Tasks
         //int? skip_casted;
 
         bool debugInfo_casted;
-
+        
         public ListFactsTask(
-            Object basePath = null,
-            Object token = null,
-            Object eid = null,
-            Object ticker = null,
-            Object tag = null,
-            Object aid = null,
-            Object fiscalYear = null,
-            Object concept = null,
-            Object fiscalPeriod = null,
-            Object fiscalPeriodType = null,
-            Object report = null,
-            Object additionalRules = null,
-            Object open = null,
-            Object aggregationFunction = null,
-            Object profileName = null,
-            Object dimensions = null,
-            Object dimensionDefaults = null,
-            Object dimensionTypes = null,
-            Object dimensionAggregation = null,
-            Object count = null,
-            Object top = null/*,
-            Object skip = null*/,
-            Object debugInfo = null
+            Object basePath,
+            Object token,
+            Parameters parameters,
+            Object debugInfo
           )
         {
             basePath_casted = Utils.castParamString(basePath, "basePath", false, "http://secxbrl.28.io/v1/_queries/public");
             api = ApiClients.getDataApiClient(basePath_casted);
 
             token_casted = Utils.castParamString(token, "token", true);
-            eid_casted = Utils.castParamString(eid, "eid", false);
-            ticker_casted = Utils.castParamString(ticker, "ticker", false);
-            tag_casted = Utils.castParamString(tag, "tag", false);
-            aid_casted = Utils.castParamString(aid, "aid", false);
-            fiscalYear_casted = Utils.castParamString(fiscalYear, "fiscalYear", false);
-            concept_casted = Utils.castParamString(concept, "concept", false);
-            fiscalPeriod_casted = Utils.castParamString(fiscalPeriod, "fiscalPeriod", false);
-            fiscalPeriodType_casted = Utils.castParamString(fiscalPeriodType, "fiscalPeriodType", false);
-            report_casted = Utils.castParamString(report, "report", false);
-            additionalRules_casted = Utils.castParamString(additionalRules, "additionalRules", false);
-            open_casted = Utils.castParamBool(open, "open", false);
-            aggregationFunction_casted = Utils.castParamString(aggregationFunction, "aggregationFunction", false);
-            profileName_casted = Utils.castParamString(profileName, "profileName", false);
+            eid_casted = Utils.castParamString(parameters.getParamValue("eid"), "eid", false);
+            ticker_casted = Utils.castParamString(parameters.getParamValue("ticker"), "ticker", false);
+            tag_casted = Utils.castParamString(parameters.getParamValue("tag"), "tag", false);
+            aid_casted = Utils.castParamString(parameters.getParamValue("aid"), "aid", false);
+            fiscalYear_casted = Utils.castParamString(parameters.getParamValue("fiscalYear"), "fiscalYear", false);
+            concept_casted = Utils.castParamString(parameters.getParamValue("concept"), "concept", false);
+            fiscalPeriod_casted = Utils.castParamString(parameters.getParamValue("fiscalPeriod"), "fiscalPeriod", false);
+            fiscalPeriodType_casted = Utils.castParamString(parameters.getParamValue("fiscalPeriodType"), "fiscalPeriodType", false);
+            report_casted = Utils.castParamString(parameters.getParamValue("report"), "report", false);
+            additionalRules_casted = Utils.castParamString(parameters.getParamValue("additionalRules"), "additionalRules", false);
+            open_casted = Utils.castParamBool(parameters.getParamValue("open"), "open", false);
+            aggregationFunction_casted = Utils.castParamString(parameters.getParamValue("aggregation-function"), "aggregationFunction", false);
+            profileName_casted = Utils.castParamString(parameters.getParamValue("profile-name"), "profileName", false);
 
-            dimensions_casted =
-                Utils.castStringDictionary(dimensions, "dimensions", "");
-            dimensionDefaults_casted =
-                Utils.castStringDictionary(dimensionDefaults, "dimensionDefaults", "::default");
-            dimensionTypes_casted =
-                Utils.castStringDictionary(dimensionTypes, "dimensionTypes", "::type");
-            /*dimensionSlicers_casted =
-                Utils.castBoolDictionary(dimensionSlicers, "dimensionSlicers");*/
-            dimensionAggregation_casted =
-                Utils.castStringDictionary(dimensionAggregation, "dimensionAggregation", "::aggregation");
+            dimensions_casted = parameters.getDimensionsValues();
+            dimensionDefaults_casted = parameters.getDimensionDefaultsValues();
+            dimensionTypes_casted = parameters.getDimensionTypesValues();
+            dimensionAggregation_casted = parameters.getDimensionAggregationsValues();
 
-            count_casted = Utils.castParamBool(count, "count", false);
-            top_casted = Utils.castParamInt(top, "top", 100);
+            count_casted = Utils.castParamBool(parameters.getParamValue("count"), "count", false);
+            top_casted = Utils.castParamInt(parameters.getParamValue("top"), "top", 100);
             //skip_casted = Utils.castParamInt(skip, "skip", 0);
 
             debugInfo_casted = Utils.castParamBool(debugInfo, "debugInfo", false);
@@ -106,10 +81,57 @@ namespace CellStore.Excel.Tasks
             {
                 throw new Exception("Too generic filter.");
             }
-            Utils.log("Created Task " + ToString());
+            //Utils.log("Created Task " + ToString());
         }
 
-        private void append(StringBuilder sb, String key, String value, bool last = false)
+        private void appendRequest(ref StringBuilder sb, String key, String value, bool last = false)
+        {
+            if (value != null)
+            {
+                sb.Append(key);
+                sb.Append("=");
+                sb.Append(value);
+                if (!last) sb.Append("&");
+            }
+        }
+
+        private void appendRequest(ref StringBuilder sb, Dictionary<string, string> dict)
+        {
+            foreach (KeyValuePair<string, string> entry in dict)
+            {
+                appendRequest(ref sb, entry.Key, entry.Value);
+            }
+        }
+
+        public string request()
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append(basePath_casted + "/api/facts?");
+            appendRequest(ref sb, "eid", eid_casted);
+            appendRequest(ref sb, "ticker", ticker_casted);
+            appendRequest(ref sb, "tag", tag_casted);
+            appendRequest(ref sb, "aid", aid_casted);
+            appendRequest(ref sb, "fiscalYear", fiscalYear_casted);
+            appendRequest(ref sb, "concept", concept_casted);
+            appendRequest(ref sb, "fiscalPeriod", fiscalPeriod_casted);
+            appendRequest(ref sb, "report", report_casted);
+            appendRequest(ref sb, "additional-rules", additionalRules_casted);
+            appendRequest(ref sb, "open", open_casted ? "true" : "false" );
+            appendRequest(ref sb, "aggregation-function", aggregationFunction_casted);
+            appendRequest(ref sb, "profile-name", profileName_casted);
+            appendRequest(ref sb, "fiscalPeriodType", fiscalPeriodType_casted);
+            appendRequest(ref sb, "count", count_casted ? "true" : "false" );
+            appendRequest(ref sb, "top", Convert.ToString(top_casted));
+            appendRequest(ref sb, dimensions_casted);
+            appendRequest(ref sb, dimensionDefaults_casted);
+            appendRequest(ref sb, dimensionTypes_casted);
+            appendRequest(ref sb, dimensionAggregation_casted);
+            //append(ref sb, "skip", Convert.ToString(skip_casted));
+            appendRequest(ref sb, "token", token_casted, true);
+            return sb.ToString();
+        }
+
+        private void append(ref StringBuilder sb, String key, String value, bool last = false)
         {
             if (value != null)
             {
@@ -120,39 +142,40 @@ namespace CellStore.Excel.Tasks
             }
         }
 
-        private void append(StringBuilder sb, Dictionary<string, string> dict)
+        private void append(ref StringBuilder sb, Dictionary<string, string> dict, string prefix)
         {
-            foreach (KeyValuePair<string, string> entry in dimensions_casted)
+            sb.Append(prefix);
+            foreach (KeyValuePair<string, string> entry in dict)
             {
-                append(sb, entry.Key, entry.Value);
+                append(ref sb, entry.Key, entry.Value);
             }
         }
 
         public string id()
         {
             StringBuilder sb = new StringBuilder();
-            append(sb, "basePath", basePath_casted);
-            //append(sb, "token", token_casted);
-            append(sb, "eid", eid_casted);
-            append(sb, "ticker", ticker_casted);
-            append(sb, "tag", tag_casted);
-            append(sb, "aid", aid_casted);
-            append(sb, "fiscalYear", fiscalYear_casted);
-            append(sb, "concept", concept_casted);
-            append(sb, "fiscalPeriod", fiscalPeriod_casted);
-            append(sb, "report", report_casted);
-            append(sb, "additionalRules", additionalRules_casted);
-            append(sb, "open", Convert.ToString(open_casted));
-            append(sb, "aggregationFunction", aggregationFunction_casted);
-            append(sb, "profileName", profileName_casted);
-            append(sb, "fiscalPeriodType", fiscalPeriodType_casted);
-            append(sb, dimensions_casted);
-            append(sb, dimensionDefaults_casted);
-            append(sb, dimensionTypes_casted);
-            append(sb, dimensionAggregation_casted);
-            append(sb, "count", Convert.ToString(count_casted));
-            append(sb, "top", Convert.ToString(top_casted));
-            //append(sb, "skip", Convert.ToString(skip_casted));
+            append(ref sb, "basePath", basePath_casted);
+            //append(ref sb, "token", token_casted);
+            append(ref sb, "eid", eid_casted);
+            append(ref sb, "ticker", ticker_casted);
+            append(ref sb, "tag", tag_casted);
+            append(ref sb, "aid", aid_casted);
+            append(ref sb, "fiscalYear", fiscalYear_casted);
+            append(ref sb, "concept", concept_casted);
+            append(ref sb, "fiscalPeriod", fiscalPeriod_casted);
+            append(ref sb, "report", report_casted);
+            append(ref sb, "additionalRules", additionalRules_casted);
+            append(ref sb, "open", Convert.ToString(open_casted));
+            append(ref sb, "aggregationFunction", aggregationFunction_casted);
+            append(ref sb, "profileName", profileName_casted);
+            append(ref sb, "fiscalPeriodType", fiscalPeriodType_casted);
+            append(ref sb, "count", Convert.ToString(count_casted));
+            append(ref sb, "top", Convert.ToString(top_casted));
+            append(ref sb, dimensions_casted, "[Dimensions:] ");
+            append(ref sb, dimensionDefaults_casted, "[Defaults:] ");
+            append(ref sb, dimensionTypes_casted, "[Types:] ");
+            append(ref sb, dimensionAggregation_casted,"[Aggregations:] ");
+            //append(ref sb, "skip", Convert.ToString(skip_casted));
             return sb.ToString();
         }
 
@@ -189,8 +212,9 @@ namespace CellStore.Excel.Tasks
                 top: top_casted);
                 //skip: skip_casted);
 
-            Utils.log("Received response for " + ToString());
-            return Utils.getFactTableResult(response, debugInfo_casted);
+            Object result = Utils.getFactTableResult(response, debugInfo_casted);
+            Utils.log("Received '" + string.Join(", ", (Object[])result) + "' as response for " + ToString());
+            return result;
         }
         
     }

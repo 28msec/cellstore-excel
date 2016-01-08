@@ -10,7 +10,7 @@ var isOnTravisAndMaster = isOnTravis && process.env.CI_PULL_REQUEST === '' && pr
 
 var config = {
     ExcelDnaVersion: '0.33.9',
-    CellStoreVersion: '0.0.13',
+    CellStoreVersion: '1.0.0',
     NewtonsoftVersion: '7.0.1',
     RestSharp: '105.1.0'
 };
@@ -68,7 +68,7 @@ gulp.task('install-dependencies', ['clean'], $.shell.task([
 ]));
 
 gulp.task('compile', $.shell.task([
-    pathFix(compileCmd + ' -r:build/bin/ExcelDna.Integration.dll,build/bin/Newtonsoft.Json.dll,build/bin/RestSharp.dll,build/bin/CellStore.dll,System.Windows.Forms.dll -target:library -out:build/bin/CellStore.Excel.dll -recurse:src/*.cs -platform:anycpu' + (args.debug ? ' -debug' : ''))
+    pathFix(compileCmd + ' -r:build/bin/ExcelDna.Integration.dll,build/bin/Newtonsoft.Json.dll,build/bin/RestSharp.dll,build/bin/CellStore.dll,System.Windows.Forms.dll,System.Runtime.Caching.dll -target:library -out:build/bin/CellStore.Excel.dll -recurse:src/*.cs -platform:anycpu' + (args.debug ? ' -debug' : ''))
 ]));
 
 gulp.task('build', ['compile'], $.shell.task([
