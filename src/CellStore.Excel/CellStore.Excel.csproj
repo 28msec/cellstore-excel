@@ -44,6 +44,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Caching" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -54,9 +55,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ApiClients.cs" />
+    <Compile Include="Parameters.cs" />
+    <Compile Include="Parameter.cs" />
+    <Compile Include="UtilFunctions.cs" />
     <Compile Include="ListFactsTask.cs" />
     <Compile Include="DataApiFunctions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Cache.cs" />
     <Compile Include="Utils.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
