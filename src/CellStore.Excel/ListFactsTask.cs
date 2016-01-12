@@ -26,6 +26,7 @@ namespace CellStore.Excel.Tasks
         bool open_casted;
         string aggregationFunction_casted;
         string profileName_casted;
+        bool labels_casted = false;
 
         Dictionary<string, string> dimensions_casted;
         Dictionary<string, string> dimensionDefaults_casted;
@@ -122,6 +123,7 @@ namespace CellStore.Excel.Tasks
             appendRequest(ref sb, "fiscalPeriodType", fiscalPeriodType_casted);
             appendRequest(ref sb, "count", count_casted ? "true" : "false" );
             appendRequest(ref sb, "top", Convert.ToString(top_casted));
+            appendRequest(ref sb, "labels", labels_casted ? "true" : "false");
             appendRequest(ref sb, dimensions_casted);
             appendRequest(ref sb, dimensionDefaults_casted);
             appendRequest(ref sb, dimensionTypes_casted);
@@ -171,6 +173,7 @@ namespace CellStore.Excel.Tasks
             append(ref sb, "fiscalPeriodType", fiscalPeriodType_casted);
             append(ref sb, "count", Convert.ToString(count_casted));
             append(ref sb, "top", Convert.ToString(top_casted));
+            append(ref sb, "labels", Convert.ToString(labels_casted));
             append(ref sb, dimensions_casted, "[Dimensions:] ");
             append(ref sb, dimensionDefaults_casted, "[Defaults:] ");
             append(ref sb, dimensionTypes_casted, "[Types:] ");
@@ -209,7 +212,8 @@ namespace CellStore.Excel.Tasks
                 dimensionTypes: dimensionTypes_casted,
                 dimensionAggregation: dimensionAggregation_casted,
                 count: count_casted,
-                top: top_casted);
+                top: top_casted,
+                labels: labels_casted);
                 //skip: skip_casted);
 
             Object result = Utils.getFactTableResult(response, debugInfo_casted);
