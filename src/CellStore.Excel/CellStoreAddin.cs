@@ -12,7 +12,6 @@ namespace CellStore.Excel.Api
 
         public void AutoOpen()
         {
-            ExcelAsyncUtil.Initialize();
             Utils.initLogWriter();
             //ExcelIntegration.RegisterUnhandledExceptionHandler(
             //    ex => "!!! EXCEPTION: " + ex.ToString());

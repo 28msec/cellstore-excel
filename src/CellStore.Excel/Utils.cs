@@ -30,6 +30,7 @@ namespace CellStore.Excel.Tools
                 Directory.CreateDirectory(logPathDir);
             }
             logWriter = new System.IO.StreamWriter(logPath, true);
+            logWriter.AutoFlush = true;
         }
 
         public static void closeLogWriter()
@@ -40,7 +41,6 @@ namespace CellStore.Excel.Tools
         public static void log(String message)
         {
             logWriter.WriteLine("{1:HH:mm:ss.fff} LOG {0}", message, DateTime.Now);
-            logWriter.Flush();
         }
 
         private static double? getValueDouble(JObject fact)
